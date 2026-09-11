@@ -1,0 +1,62 @@
+name: QuickClose
+options:
+  deploymentTarget:
+    macOS: 15.0
+settings:
+  base:
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+    GCC_TREAT_WARNINGS_AS_ERRORS: YES
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_VERSION: 6.0
+
+schemes:
+  QuickClose:
+    shared: true
+    build:
+      targets:
+        QuickClose: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - QuickCloseTests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
+
+targets:
+  QuickClose:
+    type: application
+    platform: macOS
+    bundleId: app.quickclose.mac
+    sources:
+      - path: Sources
+        type: syncedFolder
+    resources:
+      - Resources
+    settings:
+      base:
+        INFOPLIST_FILE: Sources/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: app.quickclose.mac
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 1.0
+
+  QuickCloseTests:
+    type: bundle.unit-test
+    platform: macOS
+    bundleId: app.quickclose.mac.Tests
+    sources:
+      - path: Tests
+        type: syncedFolder
+    settings:
+      base:
+        INFOPLIST_FILE: Tests/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: app.quickclose.mac.Tests
+    dependencies:
+      - target: QuickClose

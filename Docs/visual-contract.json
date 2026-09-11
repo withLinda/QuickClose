@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "phase": "final",
+  "surface_mode": "menu bar",
+  "surface_kind": "standard",
+  "default_window_or_view_size": { "width": 340, "height": 410 },
+  "one_main_job": "Quit the visible apps with one clear action.",
+  "primary_action": {
+    "label": "Quit All Apps",
+    "presentation": "intrinsic",
+    "contains_context": false,
+    "reason": "A single destructive control is separated from the app list and status."
+  },
+  "current_status": { "location": "panel header", "semantic_role": "current status" },
+  "reading_order": ["panel identity", "search apps", "running app list", "quit all apps", "optional background-app reveal", "settings"],
+  "semantic_groups": [
+    { "id": "apps", "purpose": "Scan the apps that will receive a normal quit request." },
+    { "id": "action", "purpose": "Perform the one-click quit action." },
+    { "id": "preferences", "purpose": "Reveal background apps or adjust feedback." }
+  ],
+  "group_relationship": "primary-support",
+  "group_proportion": "62/38",
+  "content_sufficiency": "The app list is the primary task context; the reveal and settings controls are secondary.",
+  "shared_anchors": [
+    { "name": "row-leading", "edge": "leading", "expected_max_drift_pt": 1 },
+    { "name": "footer-trailing", "edge": "trailing", "expected_max_drift_pt": 1 }
+  ],
+  "row_heights": [{ "name": "app-row", "points": 34 }],
+  "spacing_roles": [
+    { "name": "row-internal", "points": 10, "job": "Join icon and app name." },
+    { "name": "panel-padding", "points": 12, "job": "Keep compact controls away from the edge." },
+    { "name": "section-break", "points": 16, "job": "Separate list content from the destructive action." }
+  ],
+  "typography_roles": [
+    { "name": "identity", "style": "headline", "purpose": "Panel identity." },
+    { "name": "body", "style": "body", "purpose": "App names and controls." },
+    { "name": "support", "style": "caption", "purpose": "Status and optional guidance." }
+  ],
+  "accent_roles": [
+    { "role": "destructiveAction", "element": "Quit All Apps button" },
+    { "role": "navigationAction", "element": "Background apps switch and refresh/settings actions" },
+    { "role": "activeState", "element": "Small running-state indicator" }
+  ],
+  "accent_footprint": { "primary_filled_elements": 1, "largest_primary_plate": "intrinsic_control", "reason": "Red is reserved for the one destructive action." },
+  "boundary_jobs": [
+    { "element": "panel", "job": "matte surface separation" },
+    { "element": "search field", "job": "identify editable input" },
+    { "element": "divider", "job": "separate header from content" }
+  ],
+  "compact_fallback": "Keep the 340 point width and allow the app list to scroll vertically.",
+  "required_states": ["idle", "hover", "pressed", "focus", "disabled", "on", "off"],
+  "platform_metrics": { "default_control_target_pt": 28, "minimum_control_target_pt": 20, "default_text_pt": 13, "minimum_text_pt": 10 },
+  "rendered_evidence": { "default_image": "not available: Screen Recording permission was not granted", "compact_image": "not available: Screen Recording permission was not granted", "alignment_max_drift_pt": 0, "color_audit_passed": true }
+}

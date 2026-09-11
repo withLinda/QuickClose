@@ -43,6 +43,7 @@ Read this file during onboarding and update it while working, especially after a
 - A read-only `ctx_shell` directory listing worked as a fallback when tree discovery failed.
 - The workspace initially was empty and was not a Git repository; verify both facts again before assuming a scaffold or Git history exists.
 - **Rechecked during initial publication:** `ctx_compose` again reported no code files; `find . -type f` and fresh direct reads located both source files and the test file. If `ctx_read` returns only an unchanged-file reference without source visible in the current conversation, use `fresh=true` to obtain the actual contents before documenting symbols.
+- **Release verification:** `ctx_shell` blocked the combined `security`/`xcodebuild` command because `security` is not allowlisted; no command portion ran. Use the sanctioned execution path or separate allowlisted build commands before continuing.
 
 ### 2026-09-12 — Skill paths can resolve outside the allowed read roots
 

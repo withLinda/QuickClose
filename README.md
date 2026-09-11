@@ -2,6 +2,15 @@
 
 A quiet macOS menu-bar utility for clearing your workspace in one click.
 
+## Install
+
+1. Open the [latest GitHub release](https://github.com/withLinda/QuickClose/releases/latest).
+2. Download `QuickClose.dmg`.
+3. Open the DMG and drag **QuickClose** to the **Applications** folder.
+4. Launch QuickClose from Applications; it will appear in the menu bar.
+
+The release DMG is signed and notarized for macOS. If macOS asks for confirmation the first time, choose **Open** in the security prompt.
+
 ## Behavior
 
 - Click the menu-bar power icon to open the compact QuickClose panel.

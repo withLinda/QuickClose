@@ -72,6 +72,50 @@ Read this file during onboarding and update it while working, especially after a
 
 ## Build and test lessons
 
+### 2026-09-12 — Scene commands must attach to a scene
+
+**Verified:** Declaring `Commands { ... }` as a standalone item in `QuickClose.body` produced `'any Commands' cannot be constructed because it has no accessible initializers`.
+- **Action:** Attach the `CommandGroup` with `.commands { ... }` to the `MenuBarExtra` scene; the Debug arm64 build then succeeded.
+- **Evidence:** `Sources/App.swift`; `xcodebuild ... -destination 'platform=macOS,arch=arm64' ... build` passed after the change.
+
+### 2026-09-12 — Theme test referenced removed color roles
+
+**Verified:** The expanded Dark Hard theme consolidated the old `danger` and `navigation` roles into semantic `accent` and `onAccent`, causing the existing test to fail at compile time.
+- **Action:** Updated the test to assert the current accent/on-accent roles differ from their surfaces.
+- **Evidence:** Superseded by nine passing tests including production-token WCAG checks; final `xcodebuild -quiet ... test` exited successfully after the style change.
+
+### 2026-09-12 — Shell log inspection needs the script execution route
+
+**Verified:** `ctx_shell` permanently blocked `log show` because `log` is outside its allowlist.
+- **Action:** Do not retry through `ctx_shell`; use `ctx_execute` when macOS unified-log inspection is needed.
+- **Evidence:** The shell returned `[BLOCKED — DO NOT RETRY]`; no log query ran.
+
+### 2026-09-12 — Screenshot color audit requires a flat region
+
+**Verified:** Running `audit_screenshot_color.py` without `--region x,y,w,h` exited with usage status 2; the audit tool intentionally requires a selected image region.
+- **Action:** Inspect screenshot dimensions first, then sample a flat interior surface region and report the image profile before treating color output as evidence.
+- **Evidence:** The first live capture attempt failed at argument validation; no color pass was claimed.
+
+**Verified follow-up:** The latest panel capture is a 326×292 Display P3 PNG; AX reports the panel as 280×246pt. After ICC conversion, the primary fill sample at region `30,30,160,20` was sRGB `#E69875` at 80.97% dominance. The semantic on-accent pair `#1E2326` on `#E69875` measures 6.884808:1 WCAG contrast and D50 delta L* 57.012812.
+
+### 2026-09-12 — Menu-bar UI automation requires Accessibility permission
+
+**Verified:** Accessibility was initially denied, then granted by the user; System Events now opens QuickClose through `menu bar 2` and can inspect Settings controls.
+- Set QuickClose `frontmost` before AXPress and check the window count first; pressing an already-open status item closes it, producing misleading missing-window errors.
+- Screenshots include shadows; use AX `size` for logical window dimensions rather than PNG pixel dimensions.
+- **Evidence:** The current General window was measured at 400×554pt; an earlier panel with three apps measured 280×202pt before the final header reduction.
+- `browser.capture` repeatedly timed out on the image viewer; direct native app capture works. Keep image files and native AX measurements as evidence rather than claiming a browser-rendered review.
+- **Search automation:** Setting AXValue alone changed the displayed text without committing SwiftUI search state. AXRaise the panel, set the text field's AXFocused attribute, then type; a no-match query then resized the panel to 280×156pt. `frontmost` may still report false for the accessory app.
+
+### 2026-09-12 — Settings controls are nested in SwiftUI Form groups
+
+**Verified:** A System Events query addressed the Settings picker as a direct child of the scroll area and failed with `Can’t get pop up button "Quit action"`.
+- **Cause:** SwiftUI exposes the picker inside an intermediate AX group, matching the surrounding Form section hierarchy.
+- **Action:** Query the accessible group hierarchy first, then address the picker through its containing group; the Settings window and tab controls remain discoverable.
+- **Evidence:** `ctx_execute` returned the error at AppleScript line 441; the prior accessibility tree lists `group 3` containing the `Quit action` pop-up.
+
+**Superseded for the current layout:** After General was tightened to a custom `ScrollView`, its controls are no longer exposed under the old Form group index; query the current accessibility tree by role/name instead of assuming `group 3`.
+
 ### 2026-09-12 — Missing math imports produced a misleading secondary error
 
 **Verified:** `Tests/AppTests.swift` failed with `cannot find 'pow' in scope` and a secondary expression type-checking timeout.
@@ -96,7 +140,7 @@ Read this file during onboarding and update it while working, especially after a
 
 - Language mode and installed compiler version are different facts; inspect effective settings before changing concurrency code.
 - Keep project configuration changes in `project.yml` and regenerate with XcodeGen rather than editing only the generated `.pbxproj`.
-- The current test suite contains two Swift Testing tests; it does not exercise real application quitting, login registration, sound playback, or UI behavior.
+- The initial two-test suite was replaced by nine meaningful tests covering preferences, quit routing, completion/refusal, selection, grouping, and idle behavior; runtime checks supplement these tests.
 
 ## macOS behavior and implementation
 
@@ -116,24 +160,39 @@ Read this file during onboarding and update it while working, especially after a
 
 - Handle registration errors and approval-required states explicitly; a Boolean cannot represent every `SMAppService` status.
 - Keep external effects out of a toggle rollback loop; test error recovery instead of assuming `.onChange` is harmless.
-- Properties marked `@ObservationIgnored` are excluded from Observation tracking; test the current `@AppStorage`/`@Bindable` combination for immediate updates across the panel and Settings.
+- The previous `@ObservationIgnored`/`@AppStorage` fields were excluded from Observation tracking; the current model uses observable stored properties with `UserDefaults` persistence so panel and Settings mutations propagate immediately.
 - Registration, error recovery, cross-view updates, and audible sound output remain runtime checks, not proven by compilation.
 
 ## Visual and accessibility evidence
 
+### 2026-09-12 — Native prominent button replaced the requested dark foreground
+
+**Verified:** ICC-converted PNG region `90,32,145,15` contained white glyph cores over `#E69875`; that actual pair is only 2.304460:1, despite a source `.foregroundStyle(Theme.onAccent)`.
+- **Fix:** Keep SwiftUI Button behavior but use a small reusable ButtonStyle to paint the specified dark foreground and matte fill, with pressed and disabled states.
+- **Evidence:** `codex-shot-2026-09-12_05-01-08.png`, Pillow/ImageCms conversion; the prior 6.884808:1 measurement was the semantic pair, not the native rendered glyph pair.
+- **Verified fix:** `codex-shot-2026-09-12_05-12-59.png`, ICC-converted region `90,32,145,15`, contains #E69875 fill (1620 pixels) and #1E2326 glyph cores (106 pixels), giving 6.884808:1 contrast.
+
+### 2026-09-12 — Live quit and resizing verification
+
+**Verified:** A temporary stay-open AppleScript app named QuickCloseFixture was closed via its individual row button in both modes; Normal Quit executed its shutdown handler and created `/tmp/quickclose-fixture-normal-quit`. The independent quit button remained enabled after deselecting the row.
+- A no-match search resized the live panel to 280×156pt; clearing it restored 280×246pt for five apps.
+- Enabling background apps expanded the panel to 280×916pt; disabling restored 280×246pt.
+- General measured 400×554pt with zero scroll bars, and its Default picker switched between both modes.
+- The panel menu Quit command exited the process; relaunch retained Force Close. Latest screenshots: panel `codex-shot-2026-09-12_05-12-59.png`, Settings `codex-shot-2026-09-12_05-13-12.png` in the system temporary directory.
+
 ### 2026-09-12 — A schema pass does not establish a visual pass
 
-**Verified:** Screenshot preflight reported Screen Recording permission unavailable, and no rendered screenshots were obtained.
+**Historical:** Initial screenshot preflight reported Screen Recording unavailable; subsequent user-granted access enabled captures and AX measurements documented above.
 
 - Keep screenshot measurements unknown until captured and measured; source geometry is not a rendered alignment measurement.
-- `Docs/visual-contract.json` currently contains `alignment_max_drift_pt: 0` and `color_audit_passed: true` without supporting rendered evidence; do not reuse those values as proof.
+- The original unsupported `alignment_max_drift_pt: 0` and `color_audit_passed: true` claims have been replaced with nulls and actual measured evidence.
 - The contract declares an intrinsic action, but `Sources/ContentView.swift` uses `.frame(maxWidth: .infinity)` inside its button label; reconcile the contract and implementation before claiming a match.
 - The validator rejected `surface_kind: "compact utility"`; the skill's compact-utility example uses `"compact_utility"`, so use schema-defined values without changing the design classification just to pass validation.
 - If capture is unavailable, record that limitation and continue independent checks rather than marking the visual task complete.
 
 ### 2026-09-12 — Contrast coverage must match the claim
 
-**Verified by source inspection:** The current tests check one hardcoded foreground/background pair and that two `Color` values differ.
+**Historical:** The initial tests checked copied literals and two Color values; current tests use production tokens for primary/support text and on-accent WCAG pairs.
 
 - These tests do not establish support-text, placeholder, on-accent, focus, switch-state, or rendered contrast compliance.
 - Test production semantic tokens rather than copied literals so a theme change cannot leave a stale test passing.
@@ -145,12 +204,10 @@ Read this file during onboarding and update it while working, especially after a
 
 These are follow-ups identified from this session, not completed checks:
 
-- Verify quit completion and delayed/refused requests; the current method resets `isQuitting` and plays sound immediately after sending requests.
-- Clarify and verify search scope: the rendered list uses `filteredApps`, while quitting uses `visibleApplications` and therefore also targets apps hidden by search.
-- Verify background-app scope and distinguish user apps from OS helpers before treating every non-regular process as an intended quit target.
-- Verify live list refresh, preference observation, login-item failure states, and sound output.
-- Verify keyboard/VoiceOver access, icon-control targets, Settings presentation, and an alternative access path when the menu-bar icon is hidden.
-- Capture default and compact UI states, audit actual color pairs, and replace the unsupported visual-contract evidence with real measurements.
+- Real disposable-app Normal Quit and Force Close checks now pass; do not repeat against the user's working apps.
+- Verify Finder Automation permission and cancellation behavior by intentionally opting into the Finder/Trash extras.
+- Verify launch-at-login approval/error recovery and actual system sound output on the target Mac.
+- Complete flat-region glyph, boundary, hover, pressed, disabled, and high-contrast screenshot sampling; the current evidence covers panel geometry, primary fill, and on-accent contrast.
 
 ## Entry template
 

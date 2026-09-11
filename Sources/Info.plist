@@ -24,5 +24,7 @@
   <string>NSApplication</string>
   <key>LSUIElement</key>
   <true/>
+  <key>NSAppleEventsUsageDescription</key>
+  <string>QuickClose uses Finder only when you choose Close Finder Windows or Empty Trash.</string>
 </dict>
 </plist>

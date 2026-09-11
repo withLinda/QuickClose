@@ -3,31 +3,32 @@
   "phase": "final",
   "surface_mode": "menu bar",
   "surface_kind": "standard",
-  "default_window_or_view_size": { "width": 340, "height": 410 },
+  "default_window_or_view_size": { "width": 280, "height": 246 },
+  "height_behavior": "96pt chrome plus 30pt per visible row, clamped to the available screen height",
   "one_main_job": "Quit the visible apps with one clear action.",
   "primary_action": {
-    "label": "Quit All Apps",
-    "presentation": "intrinsic",
+    "label": "Force Close All / Normal Quit All",
+    "presentation": "full_width",
     "contains_context": false,
     "reason": "A single destructive control is separated from the app list and status."
   },
-  "current_status": { "location": "panel header", "semantic_role": "current status" },
-  "reading_order": ["panel identity", "search apps", "running app list", "quit all apps", "optional background-app reveal", "settings"],
+  "current_status": { "location": "panel footer", "semantic_role": "current status" },
+  "reading_order": ["quit all action", "selection and search", "running app list with per-app quit", "status and panel menu"],
   "semantic_groups": [
-    { "id": "apps", "purpose": "Scan the apps that will receive a normal quit request." },
-    { "id": "action", "purpose": "Perform the one-click quit action." },
-    { "id": "preferences", "purpose": "Reveal background apps or adjust feedback." }
+    { "id": "apps", "purpose": "Select apps for the chosen quit mode or close an app individually." },
+    { "id": "action", "purpose": "Perform the selected Force Close or Normal Quit action." },
+    { "id": "preferences", "purpose": "Reveal background apps, open Settings, Help, or Quit QuickClose." }
   ],
   "group_relationship": "primary-support",
-  "group_proportion": "62/38",
+  "group_proportion": "adaptive to row count",
   "content_sufficiency": "The app list is the primary task context; the reveal and settings controls are secondary.",
   "shared_anchors": [
     { "name": "row-leading", "edge": "leading", "expected_max_drift_pt": 1 },
     { "name": "footer-trailing", "edge": "trailing", "expected_max_drift_pt": 1 }
   ],
-  "row_heights": [{ "name": "app-row", "points": 34 }],
+  "row_heights": [{ "name": "app-row", "points": 30 }],
   "spacing_roles": [
-    { "name": "row-internal", "points": 10, "job": "Join icon and app name." },
+    { "name": "row-internal", "points": 7, "job": "Join selection, icon, app name, and quit control." },
     { "name": "panel-padding", "points": 12, "job": "Keep compact controls away from the edge." },
     { "name": "section-break", "points": 16, "job": "Separate list content from the destructive action." }
   ],
@@ -37,18 +38,30 @@
     { "name": "support", "style": "caption", "purpose": "Status and optional guidance." }
   ],
   "accent_roles": [
-    { "role": "destructiveAction", "element": "Quit All Apps button" },
-    { "role": "navigationAction", "element": "Background apps switch and refresh/settings actions" },
-    { "role": "activeState", "element": "Small running-state indicator" }
+    { "role": "destructiveAction", "element": "Force Close All / Normal Quit All button" },
+    { "role": "navigationAction", "element": "Background apps toggle, refresh, Settings, Help, and Quit actions" },
+    { "role": "activeState", "element": "Selected app checkbox" }
   ],
-  "accent_footprint": { "primary_filled_elements": 1, "largest_primary_plate": "intrinsic_control", "reason": "Red is reserved for the one destructive action." },
+  "accent_footprint": { "primary_filled_elements": 1, "largest_primary_plate": "full_width_control", "reason": "Everforest Dark Hard orange is reserved for the primary quit action and selected checkboxes." },
   "boundary_jobs": [
     { "element": "panel", "job": "matte surface separation" },
     { "element": "search field", "job": "identify editable input" },
-    { "element": "divider", "job": "separate header from content" }
+    { "element": "footer divider", "job": "separate list content from the panel menu" }
   ],
-  "compact_fallback": "Keep the 340 point width and allow the app list to scroll vertically.",
+  "compact_fallback": "Keep 280pt width; cap the list at min(820pt, screen visible height minus 170pt), then scroll.",
   "required_states": ["idle", "hover", "pressed", "focus", "disabled", "on", "off"],
   "platform_metrics": { "default_control_target_pt": 28, "minimum_control_target_pt": 20, "default_text_pt": 13, "minimum_text_pt": 10 },
-  "rendered_evidence": { "default_image": "not available: Screen Recording permission was not granted", "compact_image": "not available: Screen Recording permission was not granted", "alignment_max_drift_pt": 0, "color_audit_passed": true }
+  "rendered_evidence": {
+    "default_image": "/var/folders/43/wvysbd0n0fs9n2724h44s4br0000gn/T/codex-shot-2026-09-12_05-12-59.png",
+    "compact_image": "same capture; AX window size 280x246pt",
+    "settings_image": "/var/folders/43/wvysbd0n0fs9n2724h44s4br0000gn/T/codex-shot-2026-09-12_05-13-12.png; AX General 400x554pt, zero scroll bars",
+    "live_sizes_pt": { "five_apps": [280,246], "one_or_zero_matches": [280,156], "background_apps": [280,916] },
+    "panel_profile": "Display P3 PNG converted to sRGB by audit_screenshot_color.py",
+    "panel_surface_sample": "mixed region observation; flat #1E2326 pixels present after conversion",
+    "primary_fill_sample": "region 90,32,145,15: #E69875 1620 pixels; dark glyph cores #1E2326 106 pixels; ICC converted",
+    "on_accent_pair": "#1E2326 on #E69875; WCAG 6.884808:1; D50 delta L* 57.012812",
+    "alignment_max_drift_pt": null,
+    "color_audit_passed": null,
+    "note": "Rendered samples and AX geometry are recorded; a full visual pass still requires flat-region glyph and boundary sampling across states."
+  }
 }

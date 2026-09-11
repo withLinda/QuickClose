@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 @main
@@ -9,6 +10,14 @@ struct QuickClose: App {
             QuickClosePanel(model: model)
         }
         .menuBarExtraStyle(.window)
+        .commands {
+            CommandGroup(replacing: .appTermination) {
+                Button("Quit QuickClose") {
+                    NSApp.terminate(nil)
+                }
+                .keyboardShortcut("q", modifiers: .command)
+            }
+        }
 
         Settings {
             QuickCloseSettings(model: model)

@@ -1,45 +1,30 @@
 # QuickClose
 
-A quiet macOS menu-bar utility for clearing your workspace in one click.
+**Quit the apps you’re done with. Keep the ones you need.** QuickClose puts your running Mac apps in one menu-bar list. When you finish a project, you can quit its tools together and leave your browser and music open.
 
-[Slipway app icon and editable design files](Docs/AppIcon/README.md)
+**[Download QuickClose for Mac](https://github.com/withLinda/QuickClose/releases/latest/download/QuickClose.dmg)** · macOS 15 or later · Apple silicon and Intel
 
-## Install or update from the DMG
+![QuickClose panel with Icon Composer, Sketch, and TestFlight checked for Quit All and Google Chrome unchecked.](Docs/Screenshots/quickclose-panel.png)
 
-**[Download the latest QuickClose.dmg](https://github.com/withLinda/QuickClose/releases/latest/download/QuickClose.dmg)** · [What’s new in 1.1.1](https://github.com/withLinda/QuickClose/releases/tag/v1.1.1)
+<a name="behavior"></a>
 
-QuickClose 1.1.1 (build 4) supports Apple silicon and Intel Macs running macOS 15 or later. The repository is private: sign in to GitHub with an account that has access before opening the download link.
+## Your first cleanup
 
-1. **If updating:** open QuickClose’s menu-bar panel and choose **Quit** from the footer menu. **Quit All** quits selected apps, not QuickClose itself.
-2. Open the downloaded `QuickClose.dmg`. Drag **QuickClose.app** onto **Applications** in the installer window. Choose **Replace** if Finder asks.
-3. Eject the **QuickClose** disk image. In **Applications**, open **QuickClose** with the peach **Q** icon. Click the **power symbol** in the menu bar to use it.
+1. **Install QuickClose.** Open the downloaded DMG, drag **QuickClose** to **Applications**, then open it from there.
+2. **Choose what stays open.** Click the **power icon** in the menu bar. Uncheck any app you want to keep. Use **Search apps** to narrow the list.
+3. **Quit the rest.** Click **Quit All** or press **⌘⌥Q** with the panel open. Only checked apps in the current list get a quit request. To quit just one app, click the **×** on its row.
 
-The DMG is signed and notarized. If macOS asks whether to open the downloaded app on first launch, choose **Open**.
+**Quit All** gives each app a chance to ask you to save. If one stays open, check it for a save prompt. A separate **Force Quit** button targets only apps from that attempt that are still checked and visible. Force quitting can discard unsaved changes.
 
-From Terminal, use the [GitHub CLI](https://cli.github.com/) signed in to the same account. Run these commands in a folder that does not already contain `QuickClose.dmg`:
+## Make it fit your routine
 
-```sh
-gh release download --repo withLinda/QuickClose --pattern QuickClose.dmg
-open QuickClose.dmg
-```
+Open the **sliders menu** at the bottom right of the panel and choose **Settings → General**.
 
-## Behavior
+- **Keep the music playing.** Apple Music, Spotify, and other supported players are protected by default. A lock marks them in the list.
+- **Choose apps yourself.** Turn on **Deselect apps by default** to start with nothing checked. Sort by name or by most recently launched.
+- **Quit inactive apps.** Set a timer in minutes or hours. QuickClose requests a normal quit for selected apps you haven’t brought to the front. It skips the app you’re using and background apps.
+- **See background apps.** Show them when you need them, and group multiple instances of the same app into one row.
+- **Tidy Finder too.** Add separate actions to close Finder windows or empty the Trash. Emptying the Trash asks for confirmation.
+- **Set your defaults.** Open QuickClose at login, toggle the quit sound, or set **Row action** to **Force Quit** for individual apps. Bulk and automatic quits always ask apps to close normally.
 
-- Click the menu-bar power icon to open the compact QuickClose panel.
-- The compact panel grows only as large as the current app list needs, then becomes scrollable for larger lists.
-- Each app row has its own quit button, and checked rows can be closed together with the primary action.
-- **Quit All** (⌘⌥Q) asks the checked apps in the current list to quit normally, giving them a chance to save work.
-- If an app refuses or stays open after eight seconds, check it for a save prompt. A separate footer button, such as **Force Quit Sketch** or **Force Quit 3 Remaining Apps**, applies only to apps from that attempt that are still open, visible, and checked. Force Quit can discard unsaved changes.
-- Individual row buttons default to **Quit**. The **Row action** setting can switch them to **Force Quit**. An existing quit-mode preference is kept for those buttons only. Idle quitting always uses a normal quit.
-- Settings also supports background-app grouping, protected music apps, deselection defaults, sorting, Finder/Trash extras, inactive-app auto-quit, launch at login, and sounds.
-- A short system sound confirms observed termination when sounds are enabled.
-- The panel menu includes Settings, refresh, Help, background-app visibility, and `Quit` for exiting QuickClose itself.
-
-## Build
-
-```sh
-xcodebuild -project QuickClose.xcodeproj -scheme QuickClose -configuration Debug build
-xcodebuild -project QuickClose.xcodeproj -scheme QuickClose test
-```
-
-The project targets macOS 15 and uses SwiftUI, `MenuBarExtra`, native Settings, Swift 6 strict concurrency, and injected model dependencies for quit-routing tests.
+![General settings for music protection, default selection, inactive-app timing, Finder actions, and individual row actions.](Docs/Screenshots/quickclose-settings.png)

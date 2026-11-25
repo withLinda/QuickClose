@@ -76,6 +76,8 @@ Read this file during onboarding and update it while working, especially after a
 
 **Verified:** The installed `lipo -verify_arch` reported “requires exactly one input file” for the mounted executable. `lipo -archs` on the same file returned `x86_64 arm64`; compare the returned names as a set. The 1.1.0 DMG mounted read-only, contained build 3 and the `/Applications` shortcut, and passed image checksum, stapled-ticket and Gatekeeper checks for both the image and the enclosed app.
 
+**Download check:** GitHub reported `PRIVATE` for this repository. Both unauthenticated asset URLs returned 404 after publication, but a signed-in `gh release download` returned the exact stapled DMG bytes. Check repository visibility before documenting a plain `curl` command.
+
 ### 2026-09-12 — Scene commands must attach to a scene
 
 **Verified:** Declaring `Commands { ... }` as a standalone item in `QuickClose.body` produced `'any Commands' cannot be constructed because it has no accessible initializers`.

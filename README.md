@@ -6,17 +6,17 @@ A quiet macOS menu-bar utility for clearing your workspace in one click.
 
 QuickClose 1.1.0 runs on macOS 15 or later, on Apple silicon and Intel Macs.
 
-1. [Download QuickClose.dmg](https://github.com/withLinda/QuickClose/releases/latest/download/QuickClose.dmg). To review what changed first, open the [release notes](https://github.com/withLinda/QuickClose/releases/latest).
+1. Sign in to GitHub with an account that has access to this repository, then [download QuickClose.dmg](https://github.com/withLinda/QuickClose/releases/latest/download/QuickClose.dmg). To review what changed first, open the [release notes](https://github.com/withLinda/QuickClose/releases/latest).
 2. If updating, open QuickClose’s menu bar panel and choose **Quit** from the footer menu. **Quit All** closes selected apps, not QuickClose itself.
 3. Open `QuickClose.dmg`. Drag **QuickClose.app** onto **Applications** in the installer window. Choose **Replace** if Finder asks.
 4. Eject the **QuickClose** disk image. Open **QuickClose** from Applications and click the power icon in the menu bar.
 
 The DMG is signed and notarized. If macOS asks whether to open the downloaded app on first launch, choose **Open**.
 
-To download and open the same installer from Terminal:
+From Terminal, use the [GitHub CLI](https://cli.github.com/) signed in to the same account. Run these commands in a folder that does not already contain `QuickClose.dmg`:
 
 ```sh
-curl --fail --location --output QuickClose.dmg https://github.com/withLinda/QuickClose/releases/latest/download/QuickClose.dmg
+gh release download --repo withLinda/QuickClose --pattern QuickClose.dmg
 open QuickClose.dmg
 ```
 

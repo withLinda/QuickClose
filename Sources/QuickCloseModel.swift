@@ -3,55 +3,14 @@ import Combine
 import Observation
 import ServiceManagement
 
-struct RunningApp: Identifiable, Hashable {
-    let id: pid_t
-    let name: String
-    let bundleIdentifier: String?
-    let bundlePath: String?
-    let isBackground: Bool
-    let launchDate: Date
-    let application: NSRunningApplication?
-
-    init?(application: NSRunningApplication) {
-        guard !application.isTerminated, let name = application.localizedName, !name.isEmpty else { return nil }
-        id = application.processIdentifier
-        self.name = name
-        bundleIdentifier = application.bundleIdentifier
-        bundlePath = application.bundleURL?.path
-        isBackground = application.activationPolicy != .regular
-        launchDate = application.launchDate ?? .distantPast
-        self.application = application
-    }
-
-    // Descriptors without process handles let tests exercise targeting without closing real apps.
-    init(id: pid_t, name: String, bundleIdentifier: String? = nil, isBackground: Bool = false, launchDate: Date = .distantPast) {
-        self.id = id
-        self.name = name
-        self.bundleIdentifier = bundleIdentifier
-        bundlePath = bundleIdentifier
-        self.isBackground = isBackground
-        self.launchDate = launchDate
-        application = nil
-    }
-
-    static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id && lhs.name == rhs.name && lhs.isBackground == rhs.isBackground }
-    func hash(into hasher: inout Hasher) { hasher.combine(id) }
-}
-
-struct AppGroup: Identifiable {
-    let id: String
-    let apps: [RunningApp]
-    var name: String { apps.first?.name ?? "App" }
-    var title: String { apps.count > 1 ? "\(name) (\(apps.count))" : name }
-    var icon: NSImage? { apps.first?.application?.icon }
-}
-
 @MainActor
 @Observable
 final class QuickCloseModel {
     private(set) var applications: [RunningApp] = []
-    private(set) var excludedAppIDs: Set<pid_t> = []
-    private(set) var pendingQuitIDs: Set<pid_t> = []
+    private var excludedAppIDs: Set<pid_t> = []
+    private var requestedAt: [pid_t: Date] = [:]
+    // Members of the last manual Quit All attempt. Refresh drops exited or replaced processes.
+    private var bulkIDs: Set<pid_t> = []
     private(set) var lastResult: String?
     private(set) var launchAtLogin = false
     private(set) var loginMessage: String?
@@ -62,9 +21,11 @@ final class QuickCloseModel {
             preferences.save(to: defaults)
             if oldValue.deselectAppsByDefault != preferences.deselectAppsByDefault {
                 excludedAppIDs = preferences.deselectAppsByDefault ? Set(applications.map(\.id)) : []
+                if preferences.deselectAppsByDefault { bulkIDs.removeAll() }
             }
             if oldValue.autoQuitEnabled != preferences.autoQuitEnabled || oldValue.idleTimeout != preferences.idleTimeout {
-                lastActiveAt = Dictionary(uniqueKeysWithValues: applications.map { ($0.id, clock()) })
+                let now = clock()
+                lastActiveAt = Dictionary(uniqueKeysWithValues: applications.map { ($0.id, now) })
                 autoQuitAttemptedIDs.removeAll()
             }
         }
@@ -78,7 +39,6 @@ final class QuickCloseModel {
     @ObservationIgnored private var subscriptions: Set<AnyCancellable> = []
     @ObservationIgnored private var lastActiveAt: [pid_t: Date] = [:]
     @ObservationIgnored private var autoQuitAttemptedIDs: Set<pid_t> = []
-    @ObservationIgnored private var requestedAt: [pid_t: Date] = [:]
 
     init(
         defaults: UserDefaults = .standard,
@@ -105,57 +65,61 @@ final class QuickCloseModel {
     }
 
     var quitMode: QuitMode { preferences.quitMode }
-    var isQuitting: Bool { !pendingQuitIDs.isEmpty }
+    var pendingQuitIDs: Dictionary<pid_t, Date>.Keys { requestedAt.keys }
+    var isQuitting: Bool { !requestedAt.isEmpty }
 
     func refresh() {
-        let previousIDs = Set(applications.map(\.id))
         let current = enumerate().filter {
             $0.id != ProcessInfo.processInfo.processIdentifier &&
             $0.bundleIdentifier != "app.quickclose.mac" && $0.bundleIdentifier != "com.apple.finder"
         }
-        let currentIDs = Set(current.map(\.id))
-        for id in currentIDs.subtracting(previousIDs) {
-            lastActiveAt[id] = clock()
-            if preferences.deselectAppsByDefault { excludedAppIDs.insert(id) }
-        }
-        excludedAppIDs.formIntersection(currentIDs)
-        lastActiveAt = lastActiveAt.filter { currentIDs.contains($0.key) }
-        autoQuitAttemptedIDs.formIntersection(currentIDs)
-        if applications != current { applications = current }
+        let now = clock()
+        if current != applications {
+            let previous = Dictionary(uniqueKeysWithValues: applications.lazy.map { ($0.id, $0) })
+            let continuing = Set(current.compactMap { app -> pid_t? in
+                guard let old = previous[app.id], app.isSameProcess(as: old) else { return nil }
+                return app.id
+            })
+            excludedAppIDs.formIntersection(continuing)
+            lastActiveAt = lastActiveAt.filter { continuing.contains($0.key) }
+            autoQuitAttemptedIDs.formIntersection(continuing)
+            for app in current where !continuing.contains(app.id) {
+                lastActiveAt[app.id] = now
+                if preferences.deselectAppsByDefault { excludedAppIDs.insert(app.id) }
+            }
+            applications = current
 
-        let closed = pendingQuitIDs.subtracting(currentIDs)
-        if !closed.isEmpty {
-            pendingQuitIDs.subtract(closed)
-            closed.forEach { requestedAt.removeValue(forKey: $0) }
-            lastResult = "Closed \(closed.count) \(closed.count == 1 ? "app" : "apps")"
-            if preferences.playSounds { playSound() }
+            let closed = bulkIDs.union(pendingQuitIDs).subtracting(continuing)
+            bulkIDs.formIntersection(continuing)
+            if !closed.isEmpty {
+                for id in closed { requestedAt.removeValue(forKey: id) }
+                lastResult = "Closed \(closed.count) \(closed.count == 1 ? "app" : "apps")"
+                if preferences.playSounds { playSound() }
+            }
         }
-        let waitingTooLong = pendingQuitIDs.filter { clock().timeIntervalSince(requestedAt[$0] ?? clock()) >= 8 }
-        if !waitingTooLong.isEmpty {
-            pendingQuitIDs.subtract(waitingTooLong)
-            waitingTooLong.forEach { requestedAt.removeValue(forKey: $0) }
-            lastResult = "\(waitingTooLong.count) still open — check the app"
+        let expired = requestedAt.compactMap { now.timeIntervalSince($0.value) >= 8 ? $0.key : nil }
+        if !expired.isEmpty {
+            for id in expired { requestedAt.removeValue(forKey: id) }
+            lastResult = "\(expired.count) still open — check the app"
         }
-    }
-
-    var visibleApplications: [RunningApp] {
-        applications.filter { preferences.showBackgroundApps || !$0.isBackground }
     }
 
     func groups(matching search: String = "") -> [AppGroup] {
+        let preferences = self.preferences
         let query = search.trimmingCharacters(in: .whitespacesAndNewlines)
-        let matches = visibleApplications.filter { query.isEmpty || $0.name.localizedCaseInsensitiveContains(query) }
+        let matches = applications.lazy.filter { app in
+            (preferences.showBackgroundApps || !app.isBackground)
+                && (query.isEmpty || app.name.localizedCaseInsensitiveContains(query))
+        }
         let grouped = Dictionary(grouping: matches) { app in
             if preferences.groupBackgroundInstances && app.isBackground, let path = app.bundlePath {
                 return "background:\(path)"
             }
             return "pid:\(app.id)"
         }
-        return grouped.map { AppGroup(id: $0.key, apps: $0.value.sorted { $0.id < $1.id }) }.sorted { lhs, rhs in
-            if preferences.sortOrder == .newestFirst {
-                let left = lhs.apps.map(\.launchDate).max() ?? .distantPast
-                let right = rhs.apps.map(\.launchDate).max() ?? .distantPast
-                if left != right { return left > right }
+        return grouped.map { AppGroup(id: $0.key, members: $0.value) }.sorted { lhs, rhs in
+            if preferences.sortOrder == .newestFirst, lhs.latestLaunch != rhs.latestLaunch {
+                return lhs.latestLaunch > rhs.latestLaunch
             }
             let order = lhs.name.localizedStandardCompare(rhs.name)
             if order == .orderedSame { return lhs.id < rhs.id }
@@ -163,38 +127,74 @@ final class QuickCloseModel {
         }
     }
 
-    func isProtected(_ app: RunningApp) -> Bool {
+    private func isProtected(_ app: RunningApp) -> Bool {
         guard preferences.neverQuitMusicApps, let identifier = app.bundleIdentifier else { return false }
         return Self.musicAppIDs.contains(identifier)
     }
 
-    static let musicAppIDs: Set<String> = [
+    private static let musicAppIDs: Set<String> = [
         "com.apple.Music", "com.apple.iTunes", "com.spotify.client", "com.tidal.desktop",
         "com.deezer.Deezer", "com.amazon.music", "com.coppertino.Vox", "com.ronorm.riimusic"
     ]
 
-    func isSelected(_ group: AppGroup) -> Bool {
-        group.apps.contains { !isProtected($0) && !excludedAppIDs.contains($0.id) }
+    func selection(in groups: [AppGroup]) -> AppSelection {
+        let ids = Set(groups.lazy.flatMap(\.apps).filter { !self.isProtected($0) }.map(\.id))
+        return AppSelection(ids: ids, selectedCount: ids.count { !excludedAppIDs.contains($0) })
     }
 
-    func toggleSelection(_ groups: [AppGroup]) {
-        let targets = groups.flatMap(\.apps).filter { !isProtected($0) }
-        let allSelected = !targets.isEmpty && targets.allSatisfy { !excludedAppIDs.contains($0.id) }
-        if allSelected { excludedAppIDs.formUnion(targets.map(\.id)) }
-        else { excludedAppIDs.subtract(targets.map(\.id)) }
+    func setSelected(_ selected: Bool, in selection: AppSelection) {
+        if selected { excludedAppIDs.subtract(selection.ids) }
+        else {
+            excludedAppIDs.formUnion(selection.ids)
+            bulkIDs.subtract(selection.ids)
+        }
+    }
+
+    private func isSelected(_ app: RunningApp) -> Bool {
+        !excludedAppIDs.contains(app.id) && !isProtected(app)
     }
 
     func selectedApps(in groups: [AppGroup]) -> [RunningApp] {
-        groups.flatMap(\.apps).filter { !excludedAppIDs.contains($0.id) && !isProtected($0) && !pendingQuitIDs.contains($0.id) }
+        groups.lazy.flatMap(\.apps).filter { isSelected($0) && !pendingQuitIDs.contains($0.id) }
+    }
+
+    func quitSelected(matching search: String) {
+        guard !isQuitting else { return }
+        let targets = selectedApps(in: groups(matching: search))
+        bulkIDs = Set(targets.map(\.id))
+        quit(targets, mode: .normalQuit)
+    }
+
+    func bulkFollowUp(in groups: [AppGroup]) -> BulkQuitFollowUp? {
+        guard !bulkIDs.isEmpty, bulkIDs.isDisjoint(with: pendingQuitIDs) else { return nil }
+        return BulkQuitFollowUp(apps: selectedApps(in: groups).filter { bulkIDs.contains($0.id) })
+    }
+
+    func forceQuit(_ offer: BulkQuitFollowUp, matching search: String) {
+        // A process can exit, relaunch or become protected between rendering and clicking.
+        refresh()
+        guard let current = bulkFollowUp(in: groups(matching: search)) else { return }
+        let offered = Dictionary(uniqueKeysWithValues: offer.apps.map { ($0.id, $0) })
+        let targets = current.apps.filter { app in
+            offered[app.id].map { app.isSameProcess(as: $0) } == true
+        }
+        bulkIDs.subtract(targets.map(\.id))
+        quit(targets, mode: .forceClose)
     }
 
     func quit(_ apps: [RunningApp]) {
-        let currentIDs = Set(applications.map(\.id))
+        quit(apps, mode: quitMode)
+    }
+
+    private func quit(_ apps: [RunningApp], mode: QuitMode) {
+        guard !apps.isEmpty else { return }
+        let currentApps = Dictionary(uniqueKeysWithValues: applications.lazy.map { ($0.id, $0) })
         var rejected = 0
         var sent = 0
-        for app in apps where currentIDs.contains(app.id) && !isProtected(app) && !pendingQuitIDs.contains(app.id) {
-            if sendRequest(app, quitMode) {
-                pendingQuitIDs.insert(app.id)
+        for app in apps {
+            // A panel row can outlive the snapshot it displays. Never target a replacement.
+            guard currentApps[app.id] == app, !isProtected(app), !pendingQuitIDs.contains(app.id) else { continue }
+            if sendRequest(app, mode) {
                 requestedAt[app.id] = clock()
                 sent += 1
             } else { rejected += 1 }
@@ -204,7 +204,8 @@ final class QuickCloseModel {
         refresh()
     }
 
-    func noteActivity(_ id: pid_t) {
+    private func noteActivity(_ id: pid_t) {
+        guard lastActiveAt[id] != nil else { return }
         lastActiveAt[id] = clock()
         autoQuitAttemptedIDs.remove(id)
     }
@@ -212,13 +213,14 @@ final class QuickCloseModel {
     func quitInactiveApps(frontmostID: pid_t?) {
         guard preferences.autoQuitEnabled else { return }
         if let frontmostID { noteActivity(frontmostID) }
-        let targets = visibleApplications.filter {
-            !$0.isBackground && $0.id != frontmostID && !isProtected($0) &&
-            !excludedAppIDs.contains($0.id) && !autoQuitAttemptedIDs.contains($0.id) &&
-            clock().timeIntervalSince(lastActiveAt[$0.id] ?? clock()) >= preferences.idleTimeout
+        let now = clock()
+        let targets = applications.filter {
+            !$0.isBackground && $0.id != frontmostID && isSelected($0) && !autoQuitAttemptedIDs.contains($0.id) &&
+            now.timeIntervalSince(lastActiveAt[$0.id] ?? now) >= preferences.idleTimeout
         }
-        autoQuitAttemptedIDs.formUnion(targets.map(\.id))
-        quit(targets)
+        guard !targets.isEmpty else { return }
+        autoQuitAttemptedIDs.formUnion(targets.lazy.map(\.id))
+        quit(targets, mode: .normalQuit)
     }
 
     private func observeWorkspace() {
@@ -257,7 +259,7 @@ final class QuickCloseModel {
         }
     }
 
-    func syncLoginStatus() {
+    private func syncLoginStatus() {
         let status = SMAppService.mainApp.status
         launchAtLogin = status == .enabled || status == .requiresApproval
         loginMessage = status == .requiresApproval ? "Allow QuickClose in System Settings → Login Items." : nil
@@ -271,35 +273,8 @@ final class QuickCloseModel {
     func runExtra(_ action: FinderAction) async {
         guard !isRunningExtra else { return }
         isRunningExtra = true
-        let error = await FinderActions.execute(action)
+        let error = await FinderActions.shared.run(action)
         lastResult = error ?? action.completedMessage
         isRunningExtra = false
-    }
-}
-
-enum FinderAction: String, Sendable {
-    case closeWindows, emptyTrash
-    var title: String { self == .closeWindows ? "Close Finder Windows" : "Empty Trash…" }
-    var symbol: String { self == .closeWindows ? "macwindow" : "trash" }
-    var completedMessage: String { self == .closeWindows ? "Closed Finder windows" : "Trash emptied" }
-}
-
-private actor FinderActions {
-    static let shared = FinderActions()
-
-    static func execute(_ action: FinderAction) async -> String? { await shared.run(action) }
-
-    // AppleScript is created and used on this serial actor, away from the UI actor.
-    private func run(_ action: FinderAction) -> String? {
-        let command = action == .closeWindows ? "close every Finder window" : "empty trash"
-        let source = "tell application \"Finder\"\n\(command)\nend tell"
-        var error: NSDictionary?
-        NSAppleScript(source: source)?.executeAndReturnError(&error)
-        if let error {
-            if error[NSAppleScript.errorNumber] as? Int == -1743 { return "Allow Finder access in Privacy → Automation" }
-            if error[NSAppleScript.errorNumber] as? Int == -128 { return "Cancelled" }
-            return error[NSAppleScript.errorMessage] as? String ?? "Finder action failed"
-        }
-        return nil
     }
 }

@@ -4,19 +4,19 @@
   "surface_mode": "menu bar",
   "surface_kind": "standard",
   "default_window_or_view_size": { "width": 280, "height": 246 },
-  "height_behavior": "96pt chrome plus 30pt per visible row, clamped to the available screen height",
+  "height_behavior": "96pt chrome plus 30pt per visible row, with 32pt for the optional Force Quit follow-up; cap the list to fit the screen",
   "one_main_job": "Quit the visible apps with one clear action.",
   "primary_action": {
-    "label": "Force Close All / Normal Quit All",
+    "label": "Quit All",
     "presentation": "full_width",
     "contains_context": false,
-    "reason": "A single destructive control is separated from the app list and status."
+    "reason": "The primary action always requests a normal quit. A separate footer button can force quit remaining apps."
   },
   "current_status": { "location": "panel footer", "semantic_role": "current status" },
-  "reading_order": ["quit all action", "selection and search", "running app list with per-app quit", "status and panel menu"],
+  "reading_order": ["quit all action", "selection and search", "running app list with per-app quit", "status and panel menu", "optional force quit follow-up"],
   "semantic_groups": [
-    { "id": "apps", "purpose": "Select apps for the chosen quit mode or close an app individually." },
-    { "id": "action", "purpose": "Perform the selected Force Close or Normal Quit action." },
+    { "id": "apps", "purpose": "Select apps for Quit All or quit an app individually." },
+    { "id": "action", "purpose": "Request a normal quit, then optionally force quit remaining selected apps." },
     { "id": "preferences", "purpose": "Reveal background apps, open Settings, Help, or Quit QuickClose." }
   ],
   "group_relationship": "primary-support",
@@ -38,7 +38,7 @@
     { "name": "support", "style": "caption", "purpose": "Status and optional guidance." }
   ],
   "accent_roles": [
-    { "role": "destructiveAction", "element": "Force Close All / Normal Quit All button" },
+    { "role": "destructiveAction", "element": "Optional Force Quit button in the footer" },
     { "role": "navigationAction", "element": "Background apps toggle, refresh, Settings, Help, and Quit actions" },
     { "role": "activeState", "element": "Selected app checkbox" }
   ],
@@ -62,6 +62,6 @@
     "on_accent_pair": "#1E2326 on #E69875; WCAG 6.884808:1; D50 delta L* 57.012812",
     "alignment_max_drift_pt": null,
     "color_audit_passed": null,
-    "note": "Rendered samples and AX geometry are recorded; a full visual pass still requires flat-region glyph and boundary sampling across states."
+    "note": "These captures predate the Quit All follow-up. They do not verify its appearance; a full visual pass also requires flat-region glyph and boundary sampling across states."
   }
 }

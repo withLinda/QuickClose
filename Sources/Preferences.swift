@@ -1,6 +1,7 @@
 import Foundation
 
 struct Preferences: Codable, Equatable {
+    private static let storageKey = "preferences.v1"
     var showBackgroundApps = false
     var groupBackgroundInstances = true
     var neverQuitMusicApps = true
@@ -13,12 +14,13 @@ struct Preferences: Codable, Equatable {
     var autoQuitInterval = 1
     var autoQuitUnit = IdleUnit.hours
     var sortOrder = AppSortOrder.alphabetical
-    var quitMode = QuitMode.forceClose
+    // Stored under the original key for compatibility; applies only to individual rows.
+    var quitMode = QuitMode.normalQuit
 
     var idleTimeout: TimeInterval { Double(autoQuitInterval) * autoQuitUnit.seconds }
 
     static func load(from defaults: UserDefaults) -> Self {
-        if let data = defaults.data(forKey: "preferences.v1"),
+        if let data = defaults.data(forKey: storageKey),
            let saved = try? JSONDecoder().decode(Self.self, from: data) {
             return saved
         }
@@ -28,24 +30,26 @@ struct Preferences: Codable, Equatable {
         result.playSounds = defaults.object(forKey: "playSounds") as? Bool ?? true
         result.deselectAppsByDefault = defaults.bool(forKey: "deselectAppsByDefault")
         result.disableQuitTips = defaults.bool(forKey: "disableQuitTips")
-        result.quitMode = defaults.string(forKey: "quitMode").flatMap(QuitMode.init(rawValue:)) ?? .forceClose
+        if let savedMode = defaults.string(forKey: "quitMode").flatMap(QuitMode.init(rawValue:)) {
+            result.quitMode = savedMode
+        }
         return result
     }
 
     func save(to defaults: UserDefaults) {
-        if let data = try? JSONEncoder().encode(self) { defaults.set(data, forKey: "preferences.v1") }
+        if let data = try? JSONEncoder().encode(self) { defaults.set(data, forKey: Self.storageKey) }
     }
 }
 
 enum QuitMode: String, CaseIterable, Identifiable, Codable {
     case forceClose, normalQuit
     var id: Self { self }
-    var title: String { self == .forceClose ? "Force Close" : "Normal Quit" }
+    var title: String { self == .forceClose ? "Force Quit" : "Quit" }
     var symbol: String { self == .forceClose ? "bolt.fill" : "power" }
     var explanation: String {
         self == .forceClose
-            ? "Force Close ends apps immediately; unsaved changes may be lost."
-            : "Normal Quit lets apps save work or ask before closing."
+            ? "Force Quit ends the app immediately; unsaved changes may be lost."
+            : "Quit lets the app save work or ask before closing."
     }
 }
 

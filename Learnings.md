@@ -2,7 +2,7 @@
 title: QuickClose Session Learnings
 description: Verified tool behavior, debugging lessons, and unresolved checks for future agents.
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-11-26
 status: living-document
 scope: QuickClose-Menubar
 ---
@@ -71,6 +71,10 @@ Read this file during onboarding and update it while working, especially after a
 - Keep build output compressed by default; expand the relevant diagnostic instead of requesting a complete verbose build.
 
 ## Build and test lessons
+
+### 2026-11-26 — Verify the executable inside the final release DMG
+
+**Verified:** The installed `lipo -verify_arch` reported “requires exactly one input file” for the mounted executable. `lipo -archs` on the same file returned `x86_64 arm64`; compare the returned names as a set. The 1.1.0 DMG mounted read-only, contained build 3 and the `/Applications` shortcut, and passed image checksum, stapled-ticket and Gatekeeper checks for both the image and the enclosed app.
 
 ### 2026-09-12 — Scene commands must attach to a scene
 
@@ -144,6 +148,15 @@ Read this file during onboarding and update it while working, especially after a
 
 ## macOS behavior and implementation
 
+### 2026-11-25 — Compare workspace snapshots by the data used for targeting
+
+**Verified:** The old equality check ignored the bundle identifier and launch date. A fixture that supplied these fields on a later refresh kept its old sort position and remained a quit target despite music protection. A second fixture counted two workspace scans instead of one when an idle check found no targets.
+- **Evidence:** Both focused Swift Testing cases failed before the refactor: `refreshUsesNewMetadataForProtectionAndSorting()` and `idleCheckWithNoTargetsDoesNotRescanWorkspace()`. Use injected descriptors, a clock and a request recorder for these checks.
+- **Verified follow-up:** Checking only PID membership at dispatch still sent a request from an old snapshot to a now-protected fixture (`[83, 82]` instead of `[83]`). The updated dispatch check rejects the stale descriptor. The same focused run covered a partially selected group, which the old “any selected” rule had treated as fully selected.
+- **Verification:** Xcode 27.2 reported 10/10 focused model tests passing. A separate `NSHostingView` test measured the panel at 280×156pt for two rows and 280×216pt after showing a background app and a Finder extra. These are fitting sizes, not live menu-bar screenshots.
+- **Review finding:** A cached visible list included a hidden helper when passed to the bulk action. A same-PID replacement also inherited an expired idle deadline. Both fixture regressions failed before the fix. Compute bulk targets at click time and carry bookkeeping forward only for the same process, not merely the same PID.
+- **Verified fix:** Both regression cases and five related tests passed in the final focused run. The installed AppKit header recommends `NSRunningApplication.isEqual(_:)` over PID comparison; the fixture uses launch time when no AppKit handle exists.
+
 ### 2026-09-12 — A sent quit request is not a completed quit
 
 **Verified from Apple documentation:** `NSRunningApplication.terminate()` returns whether the request was sent and can return before the app exits; sandboxed apps cannot use it to terminate other apps.
@@ -153,6 +166,10 @@ Read this file during onboarding and update it while working, especially after a
 - Exclude QuickClose itself and verify the target set before execution, especially with background apps enabled.
 - Test with injected app/service behavior or disposable fixture apps; do not press the real bulk-quit control during automated verification of the user's live workspace.
 - Source: [Apple — terminate()](https://developer.apple.com/documentation/appkit/nsrunningapplication/terminate()).
+
+**2026-11-26, verified before changing the bulk flow:** A saved `forceClose` setting routed both Quit All and idle quitting to force termination. The injected request recorder caught both calls in `savedForceModeCannotForceBulkOrIdleQuit()`. The hosted panel stayed at 156pt after a partial quit; it had no separate follow-up action. See `build/quit-flow-red.xcresult`.
+
+**Verified after the change:** `build/quit-flow-final.xcresult` reports 20 passed, 0 failed. Fixture tests cover refusal, delayed exit, click-time process replacement, opt-outs and no automatic force quit. For offscreen captures, lay out the hosting view **before** reading its new `fittingSize`: the probe read 156pt before layout and 188pt after it. `build/QuitFlowProbe/partial.png` shows both buttons fully visible with their separate locations. This checks a hosted fixture; the new flow has not been exercised against live apps in the menu bar.
 
 ### 2026-09-12 — Preferences must reflect service state and observable changes
 
@@ -186,7 +203,7 @@ Read this file during onboarding and update it while working, especially after a
 
 - Keep screenshot measurements unknown until captured and measured; source geometry is not a rendered alignment measurement.
 - The original unsupported `alignment_max_drift_pt: 0` and `color_audit_passed: true` claims have been replaced with nulls and actual measured evidence.
-- The contract declares an intrinsic action, but `Sources/ContentView.swift` uses `.frame(maxWidth: .infinity)` inside its button label; reconcile the contract and implementation before claiming a match.
+- **Resolved in source:** `Docs/visual-contract.json` now declares `full_width` and `Sources/QuickClosePanel.swift` gives the button label `.frame(maxWidth: .infinity)`.
 - The validator rejected `surface_kind: "compact utility"`; the skill's compact-utility example uses `"compact_utility"`, so use schema-defined values without changing the design classification just to pass validation.
 - If capture is unavailable, record that limitation and continue independent checks rather than marking the visual task complete.
 

@@ -2,14 +2,17 @@
 
 A quiet macOS menu-bar utility for clearing your workspace in one click.
 
+[Slipway app icon and editable design files](Docs/AppIcon/README.md)
+
 ## Install or update from the DMG
 
-QuickClose 1.1.0 runs on macOS 15 or later, on Apple silicon and Intel Macs.
+**[Download the latest QuickClose.dmg](https://github.com/withLinda/QuickClose/releases/latest/download/QuickClose.dmg)** · [What’s new in 1.1.1](https://github.com/withLinda/QuickClose/releases/tag/v1.1.1)
 
-1. Sign in to GitHub with an account that has access to this repository, then [download QuickClose.dmg](https://github.com/withLinda/QuickClose/releases/latest/download/QuickClose.dmg). To review what changed first, open the [release notes](https://github.com/withLinda/QuickClose/releases/latest).
-2. If updating, open QuickClose’s menu bar panel and choose **Quit** from the footer menu. **Quit All** closes selected apps, not QuickClose itself.
-3. Open `QuickClose.dmg`. Drag **QuickClose.app** onto **Applications** in the installer window. Choose **Replace** if Finder asks.
-4. Eject the **QuickClose** disk image. Open **QuickClose** from Applications and click the power icon in the menu bar.
+QuickClose 1.1.1 (build 4) supports Apple silicon and Intel Macs running macOS 15 or later. The repository is private: sign in to GitHub with an account that has access before opening the download link.
+
+1. **If updating:** open QuickClose’s menu-bar panel and choose **Quit** from the footer menu. **Quit All** quits selected apps, not QuickClose itself.
+2. Open the downloaded `QuickClose.dmg`. Drag **QuickClose.app** onto **Applications** in the installer window. Choose **Replace** if Finder asks.
+3. Eject the **QuickClose** disk image. In **Applications**, open **QuickClose** with the peach **Q** icon. Click the **power symbol** in the menu bar to use it.
 
 The DMG is signed and notarized. If macOS asks whether to open the downloaded app on first launch, choose **Open**.
 

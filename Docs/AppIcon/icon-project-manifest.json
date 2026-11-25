@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "project_name": "QuickClose",
+  "icon_basename": "Slipway",
+  "platforms": ["macos"],
+  "canvas": {"shared_px": 1024},
+  "color_contract": {
+    "source_profile": "sRGB", "icon_composer_untagged_svg_profile": "sRGB", "comparison_profile": "sRGB",
+    "required_text_contrast": 4.5, "essential_symbol_contrast": 3, "required_delta_l_star": 40,
+    "palette_roles": [
+      {"role": "icon.background", "value": "#232A2E", "purpose": "Slate field"},
+      {"role": "icon.recognizer", "value": "#E69875", "purpose": "Peach Q"}
+    ]
+  },
+  "design": {
+    "app_purpose": "Quit selected Mac apps together.",
+    "metaphor": "The tail of a Q slips free.",
+    "supporting_idea": "The notch defines the slipping tail without a second object.",
+    "primary_silhouette": "Rounded-square Q with a short notched tail.",
+    "small_size_target_px": 64,
+    "brand_palette_source": "Approved slate and peach concept.",
+    "optical_occupancy": {
+      "measurement_basis": "non_background_visible_bounds", "visible_bounds_px": [208,203,831,892],
+      "width_percent": 60.84, "height_percent": 67.29,
+      "review_contexts": ["official_grid","64_px","neighbor_comparison"],
+      "notes": "Thresholded on the 1024 px SVG render; right and bottom are exclusive. Reviewed in Composer with the grid and beside Calculator and Notes through NSWorkspace."
+    },
+    "background_strategy": {"mode":"appearance_adaptive","source":"icon_composer","default_value":"#232A2E","dark_value":"Automatic dark","reason":"Keep the approved slate in Default, and let macOS adapt the field in Dark."},
+    "geometry_contract": {"model":"flat","depth_vector":[0,0],"occlusion_rule":"One foreground above a solid root; no source extrusion.","alignment_anchors":[]}
+  },
+  "groups": [{"z":1,"name":"Group","purpose":"One Q face with automatic edge lighting.","material_mode":"individual"}],
+  "layers": [{"z":1,"name":"01_slipway-q","file":"layers/01_slipway-q.svg","format":"svg","group":"Group","role":"recognizer","purpose":"Lettermark","physical_object":"Q","material_unit":"peach face","contains_overlapping_independent_objects":false,"glass_expected":true,"contains_text":true,"expected_transform":{"x":0,"y":0,"scale":1,"rotation":0}}],
+  "appearances": {
+    "default":{"status":"pass","notes":"Peach Q with a narrow highlight against slate."},
+    "dark":{"status":"pass","notes":"The same peach Q stays distinct on the darker, system-adapted field."},
+    "clear_light":{"status":"pass","notes":"Light neutral Q on a mid-gray field; see appearances.png."},
+    "clear_dark":{"status":"pass","notes":"Light neutral Q on charcoal; the central counter stays open."},
+    "tinted_light":{"status":"pass","notes":"Near-white face on a violet field in the stock tint export."},
+    "tinted_dark":{"status":"pass_with_exception","notes":"The system violet tint is darker than its light counterpart. The PNG was untagged; visually reviewed, no ICC-managed contrast claim."},
+    "watch_default":"not_applicable"
+  },
+  "qa": {
+    "source_audit":{"status":"pass","notes":"Strict-flat audit: one SVG, zero warnings or errors; Composer and Sketch export bytes match."},
+    "flat_preview_64":{"status":"pass","notes":"The Q and counter are recognizable in the reduced preview."},
+    "optical_scale":{"status":"pass","notes":"Reviewed with the official grid and against system app icons; workspace-neighbors.png."},
+    "geometry_integrity":{"status":"pass","notes":"No independent crossing; 98.6% silhouette IoU against approved reference."},
+    "material_edge_integrity":{"status":"pass","notes":"Continuous exterior and counter edge; no extra bevel at the tail junction in Composer."},
+    "transform_audit":{"status":"pass","notes":"Full-canvas transparent SVG, X/Y zero, scale 100%, no rotation."},
+    "background_appearance":{"status":"pass","notes":"Slate in Default; Dark adapts to a nearly black field in the rendering."},
+    "rendered_matrix":{"status":"pass_with_exception","notes":"Six platform appearances at 64 and 1024 px; reviewed stock tint. Did not test every wallpaper or user-selected tint."},
+    "color_audit":{"status":"pass","notes":"Default ICC-to-sRGB interior pair measured 6.388052:1 and D50 delta L* 54.193241."},
+    "export_decode":{"status":"pass","notes":"verify_icon_exports.py confirmed six of six native 64 px exports with all six appearances.","directory":"review","png_count":6,"decoded_count":6,"appearances_found":["default","dark","clear_light","clear_dark","tinted_light","tinted_dark"],"sizes_found":[64]},
+    "reopen_check":{"status":"pass","notes":"Reopened Resources/Slipway.icon in Icon Composer: root, group and 01_slipway-q present; checked render and saved the final mono override."},
+    "simulator_or_device":{"status":"pass","notes":"Built and tested on the host Mac. NSWorkspace rendered the Release bundle at 32, 64 and 256 px."},
+    "text_pair_audits":[{"foreground":"#E69875","background":"#23292D","wcag_ratio":6.388052,"delta_l_star":54.193241}],
+    "essential_symbol_pairs":[{"foreground":"#E69875","background":"#23292D","wcag_ratio":6.388052,"delta_l_star":54.193241}],
+    "dynamic_color_notes":"The reported color pair is the default exported interior sample; it is not a minimum across tints."
+  },
+  "deliverables":{"sketch_file":"Slipway.sketch","icon_file":"../../Resources/Slipway.icon","xcode_in_scope":true,"review_export_directory":"review","review_exports":["Slipway-macOS.png","appearances.png","workspace-neighbors.png"],"qa_report":"README.md"}
+}

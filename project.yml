@@ -36,16 +36,19 @@ targets:
     sources:
       - path: Sources
         type: syncedFolder
-    resources:
-      - Resources
+      - path: Resources/Assets.xcassets
+        buildPhase: resources
+      - path: Resources/Slipway.icon
+        type: file
+        buildPhase: resources
     settings:
       base:
-        INFOPLIST_FILE: Sources/Info.plist
+        INFOPLIST_FILE: Resources/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: app.quickclose.mac
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_APPICON_NAME: Slipway
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-        CURRENT_PROJECT_VERSION: 3
-        MARKETING_VERSION: 1.1.0
+        CURRENT_PROJECT_VERSION: 4
+        MARKETING_VERSION: 1.1.1
 
   QuickCloseTests:
     type: bundle.unit-test

@@ -34,6 +34,12 @@ Read this file during onboarding and update it while working, especially after a
 
 ## Tool routing and recovery
 
+### 2026-11-26 — Use the Composer document’s own process and export tool
+
+**Verified:** The standalone and Xcode-bundled Icon Composer ran as separate processes with the same bundle ID. An import sheet ignored background keyboard navigation. Selecting each file row through macOS Accessibility, verifying its selected state, and pressing the sheet’s Open button imported Sketch’s full-canvas `01_slipway-q.svg`. The floating Colors panel exposed its own `hex` field; after choosing sRGB it confirmed decimal 35, 42, 46.
+
+- `/usr/bin/ictool` did not accept `--help`; the executable under Xcode’s `Icon Composer.app/Contents/Executables/` reported its image-export options. Use the matching Xcode SDK explicitly for Swift desktop probes. The optional tracing package version was unavailable; the mark was reconstructed with editable Béziers and needed no new dependency.
+
 ### 2026-09-12 — Root discovery can fail while individual reads work
 
 **Verified:** `ctx_compose` and `ctx_tree` refused the project root as broad/privacy-protected and reported no indexed code, even after Swift files existed.
@@ -71,6 +77,12 @@ Read this file during onboarding and update it while working, especially after a
 - Keep build output compressed by default; expand the relevant diagnostic instead of requesting a complete verbose build.
 
 ## Build and test lessons
+
+### 2026-11-26 — Verify generated icon target membership and the built bundle
+
+**Verified:** The old generated project did not include the `Resources` catalog. Declaring the catalog and `.icon` as XcodeGen source entries with `buildPhase: resources` added them. That phase also copied the synchronized `Sources/Info.plist`; an `excludes` entry did not stop it. Moving the input plist outside the synced folder eliminated the warning and duplicate.
+
+- A fresh Release build contained only `Assets.car` and `Slipway.icns` under `Contents/Resources`. Both `CFBundleIconName` and `CFBundleIconFile` resolved to `Slipway`, and `NSWorkspace` rendered the Q at 32 and 64 px. The icon resource change passed all 20 tests. Use `NSBitmapImageRep` with `isPlanar: false` for this AppKit render; the local Sketch CLI did not accept `list artboards`, so verify the saved Sketch archive and its layers directly.
 
 ### 2026-11-26 — Verify the executable inside the final release DMG
 
@@ -183,6 +195,13 @@ Read this file during onboarding and update it while working, especially after a
 - Registration, error recovery, cross-view updates, and audible sound output remain runtime checks, not proven by compilation.
 
 ## Visual and accessibility evidence
+
+### 2026-11-26 — Check icon recognition at the size where details disappear
+
+**Verified:** In `Docs/IconStudies/2026-11-26-quiet-exit/size-study.png`, Slipway’s Q remains visible at 32 px, but the small notch is not distinct at 16 px in grayscale. Pillow produced the matched previews from all three decoded 1254 px PNGs; ImageMagick was unavailable. These are design previews, not native appearance or user-test results.
+
+- **Research:** The attempted short WAI pattern URL returned 404. The published [COGA note, §4.2.7](https://www.w3.org/TR/coga-usable/#use-icons-that-help-the-user-pattern) contains the guidance on familiar symbols with one meaning.
+- **Recolor verification:** An 8-bit red-channel check put 14 edge pixels on the wrong side of the threshold because both sides rounded to red 123. For this palette the green midpoint is 86.5, so the two sides are distinct. The green-channel mask of `slipway-graphite-peach.png` matched the original half-coverage mask at every pixel.
 
 ### 2026-09-12 — Native prominent button replaced the requested dark foreground
 

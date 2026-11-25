@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AA9D0DC4B30B78B5FA3BFB18 /* Slipway.icon in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A5D9CC2404212B39ED40E /* Slipway.icon */; };
+		D5A648C28647E691623484EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E14816DC5AE428792984C11C /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		1FDF8388B029D75123C15AD7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -17,8 +22,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5C0A5D9CC2404212B39ED40E /* Slipway.icon */ = {isa = PBXFileReference; path = Slipway.icon; sourceTree = "<group>"; };
 		606FA23AD1E1E98851EB727E /* QuickCloseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuickCloseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9435189AF7C23D075E0C99F /* QuickClose.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuickClose.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E14816DC5AE428792984C11C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -43,6 +50,15 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXGroup section */
+		02F26819FB0A2CB6A0E861AE /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				E14816DC5AE428792984C11C /* Assets.xcassets */,
+				5C0A5D9CC2404212B39ED40E /* Slipway.icon */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		5262F85C6D24337DB1DD768D /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -57,6 +73,7 @@
 			children = (
 				B35D1AA758857C88C3FDC9C3 /* Sources */,
 				F3C8FC569EEAB32A6AF8849B /* Tests */,
+				02F26819FB0A2CB6A0E861AE /* Resources */,
 				5262F85C6D24337DB1DD768D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +107,7 @@
 			buildConfigurationList = 00DCFD6101467C3269E17FC9 /* Build configuration list for PBXNativeTarget "QuickClose" */;
 			buildPhases = (
 				75D44BE4BEF89D47A6FA998C /* Sources */,
+				5658E696536BCAA4AD426AF1 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -134,6 +152,18 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		5658E696536BCAA4AD426AF1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D5A648C28647E691623484EA /* Assets.xcassets in Resources */,
+				AA9D0DC4B30B78B5FA3BFB18 /* Slipway.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		75D44BE4BEF89D47A6FA998C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -163,16 +193,16 @@
 		2C0510B3E0BF37EE3A469428 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Slipway;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
-				INFOPLIST_FILE = Sources/Info.plist;
+				CURRENT_PROJECT_VERSION = 4;
+				INFOPLIST_FILE = Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = app.quickclose.mac;
 				SDKROOT = macosx;
 			};
@@ -181,16 +211,16 @@
 		39955227E7B012B592981537 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Slipway;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
-				INFOPLIST_FILE = Sources/Info.plist;
+				CURRENT_PROJECT_VERSION = 4;
+				INFOPLIST_FILE = Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = app.quickclose.mac;
 				SDKROOT = macosx;
 			};

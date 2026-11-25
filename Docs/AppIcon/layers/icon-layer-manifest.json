@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "canvas": {"width": 1024, "height": 1024, "profile": "sRGB"},
+  "geometry_contract": {
+    "model": "flat", "depth_vector": [0, 0],
+    "occlusion_rule": "The peach Q sits on a solid slate Composer background. The counter and tail notch expose that background.",
+    "alignment_anchors": [], "notes": "No extrusion. The bowl and tail share a continuous edge and material."
+  },
+  "layers": [{
+    "z": 1, "path": "01_slipway-q.svg", "format": "svg", "role": "recognizer",
+    "purpose": "The selected Slipway Q.", "physical_object": "Q", "material_unit": "peach face",
+    "contains_overlapping_independent_objects": false, "glass_expected": true
+  }]
+}
